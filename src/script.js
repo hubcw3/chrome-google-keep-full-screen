@@ -15,6 +15,9 @@ var main = {
     elMenu: null,
     elContainer: null,
 
+    observerNewNotes: null,
+    observerNoteChanges: null,
+
     init: function () {
         this.SELECTOR_CREATED_NOTES_GROUP_CONTAINER = '.gkA7Yd-sKfxWe.ma6Yeb-r8s4j-gkA7Yd>div';
         this.SELECTOR_NOTE_CONTAINER = '.IZ65Hb-n0tgWb';
@@ -33,20 +36,33 @@ var main = {
             main.initMenu();
         } , 3000);
 
+        main.observerNoteChanges = new MutationObserver(main.checkForOpenNote)
+        main.observerNewNotes = new MutationObserver(main.initNoteObservers);
+
+        main.checkForDarkMode();
+        main.checkForOpenNote();
+        main.initMenu();
+
+        // In Dark Mode, menu seems to behave a little differently
+        // Delay seems necessary to render it correctly
+        window.setTimeout( () => {
+            main.initMenu();
+        } , 3000);
+
         // Observe existing notes on load for open/close
         main.initNoteObservers();
 
         // Observe note group container for added/removed children
         var elCreatedNotesGroupContainer = document.querySelector(this.SELECTOR_CREATED_NOTES_GROUP_CONTAINER);
-        new MutationObserver(main.initNoteObservers)
-            .observe(
-                elCreatedNotesGroupContainer,
-                {
-                    childList: true,
-                    attributes: false,
-                    subtree: false
-                }
-            );
+        // Listen for list of notes to change - add/remove or page switch
+        main.observerNewNotes.observe(
+            elCreatedNotesGroupContainer,
+            {
+                childList: true,
+                attributes: false,
+                subtree: false
+            }
+        );
 
         // Listen for popstate - triggered by forward and back buttons, and manual hash entry
         window.addEventListener('popstate', main.checkForOpenNote);
@@ -74,9 +90,8 @@ var main = {
 
                     // Only listen for this specific element's attributes to change
                     //  - when they do, check for an open note via same old logic
-                    console.log('new MutationObserver for note');
-                    new MutationObserver(main.checkForOpenNote)
-                        .observe(
+                    console.log('New note seen - observing it for attribute changes');
+                    main.observerNoteChanges.observe(
                             elNoteContainer,
                             {
                                 childList: false,
@@ -105,7 +120,7 @@ var main = {
     },
 
     checkForOpenNote: function () {
-        console.log('checkForOpenNote');
+        console.log('attribute on note changed, or user change url - checkForOpenNote');
         var elNote = document.querySelector(main.SELECTOR_OPEN_NOTE);
         if (elNote) {
 
