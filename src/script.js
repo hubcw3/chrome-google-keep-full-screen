@@ -27,15 +27,6 @@ var main = {
         this.SELECTOR_NOTE_MENU = '.VIpgJd-xl07Ob.VIpgJd-xl07Ob-BvBYQ';
 
         // Initial Setup
-        main.checkForDarkMode();
-        main.checkForOpenNote();
-
-        // In Dark Mode, menu seems to behave a little differently
-        // Delay seems necessary to render it correctly
-        window.setTimeout( () => {
-            main.initMenu();
-        } , 3000);
-
         main.observerNoteChanges = new MutationObserver(main.checkForOpenNote)
         main.observerNewNotes = new MutationObserver(main.initNoteObservers);
 
